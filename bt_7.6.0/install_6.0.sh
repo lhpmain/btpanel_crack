@@ -2,6 +2,17 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 LANG=en_US.UTF-8
+
+if [ $(whoami) != "root" ];then
+	echo "请使用root权限执行宝塔安装命令！"
+	exit 1;
+fi
+
+is64bit=$(getconf LONG_BIT)
+if [ "${is64bit}" != '64' ];then
+	Red_Error "抱歉, 当前面板版本不支持32位系统, 请使用64位系统或安装宝塔5.9!";
+fi
+
 cd ~
 setup_path="/www"
 python_bin=$setup_path/server/panel/pyenv/bin/python
@@ -34,12 +45,6 @@ Red_Error(){
 	GetSysInfo
 	exit 1;
 }
-
-is64bit=$(getconf LONG_BIT)
-if [ "${is64bit}" != '64' ];then
-	Red_Error "抱歉, 当前面板版本不支持32位系统, 请使用64位系统或安装宝塔5.9!";
-fi
-
 Lock_Clear(){
 	if [ -f "/etc/bt_crack.pl" ];then
 		chattr -R -ia /www
@@ -129,7 +134,7 @@ get_node_url(){
 	
 	echo '---------------------------------------------';
 	echo "Selected download node...";
-	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://123.129.198.197 http://103.224.251.67 http://125.88.182.172:5880 http://45.76.53.20 http://119.188.210.21:5880 http://120.206.184.160 http://113.107.111.78 http://128.1.164.196);
+	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://180.101.160.68:5880 http://103.224.251.67 http://45.76.53.20 http://120.206.184.160 http://113.107.111.78 http://128.1.164.196);
 	tmp_file1=/dev/shm/net_test1.pl
 	tmp_file2=/dev/shm/net_test2.pl
 	[ -f "${tmp_file1}" ] && rm -f ${tmp_file1}
