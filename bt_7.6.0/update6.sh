@@ -37,9 +37,10 @@ if [ -f $env_path ];then
 fi
 
 download_Url=$NODE_URL
+#downloads_Url=https://download.seele.wang
 downloads_Url=https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_7.6.0/
 setup_path=/www
-version=$(curl -Ss --connect-timeout 5 -m 2 https://www.seele.wang/api/panel/get_version)
+version=$(curl -Ss --connect-timeout 5 -m 2 https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_7.6.0/install/update/get_version)
 if [ "$version" = '' ];then
 	version='7.6.0'
 fi
