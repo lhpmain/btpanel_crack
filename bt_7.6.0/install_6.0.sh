@@ -705,7 +705,7 @@ Get_Ip_Address(){
 	LOCAL_IP=$(ip addr | grep -E -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -E -v "^127\.|^255\.|^0\." | head -n 1)
 }
 Setup_Count(){
-   <!--	curl -sS --connect-timeout 10 -m 60 https://www.hostcli.com/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1 -->
+   #curl -sS --connect-timeout 10 -m 60 https://www.hostcli.com/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1 
 	curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1
 	if [ "$1" != "" ];then
 		echo $1 > /www/server/panel/data/o.pl
