@@ -56,32 +56,30 @@ Lock_Clear(){
 	fi
 }
 Install_Check(){
-	while [ "$yes" != 'yes' ] && [ "$yes" != 'n' ]
-	do
-		echo -e "----------------------------------------------------"
-		echo -e "已有Web环境，安装宝塔可能影响现有站点"
-		echo -e "Web service is alreday installed,Can't install panel"
-		echo -e "----------------------------------------------------"
-		read -p "输入yes强制安装/Enter yes to force installation (yes/n): " yes;
-	done 
-	if [ "$yes" == 'n' ];then
+	if [ "${INSTALL_FORCE}" ];then
+		return
+	fi
+	echo -e "----------------------------------------------------"
+	echo -e "检查已有其他Web/mysql环境，安装宝塔可能影响现有站点及数据"
+	echo -e "Web/mysql service is alreday installed,Can't install panel"
+	echo -e "----------------------------------------------------"
+	echo -e "已知风险/Enter yes to force installation"
+	read -p "输入yes强制安装: " yes;
+	if [ "$yes" != "yes" ];then
+		echo -e "------------"
+		echo "取消安装"
 		exit;
 	fi
+	INSTALL_FORCE="true"
 }
 System_Check(){
-	for serviceS in nginx httpd mysqld
-	do
-		if [ -f "/etc/init.d/${serviceS}" ]; then
-			if [ "${serviceS}" = "httpd" ]; then
-				serviceCheck=$(cat /etc/init.d/${serviceS}|grep /www/server/apache)
-			elif [ "${serviceS}" = "mysqld" ]; then
-				serviceCheck=$(cat /etc/init.d/${serviceS}|grep /www/server/mysql)
-			else
-				serviceCheck=$(cat /etc/init.d/${serviceS}|grep /www/server/${serviceS})
-			fi
-			[ -z "${serviceCheck}" ] && Install_Check
-		fi
-	done
+	MYSQLD_CHECK=$(ps -ef |grep mysqld|grep -v grep|grep -v /www/server/mysql)
+	PHP_CHECK=$(ps -ef|grep php-fpm|grep master|grep -v /www/server/php)
+	NGINX_CHECK=$(ps -ef|grep nginx|grep master|grep -v /www/server/nginx)
+	HTTPD_CHECK=$(ps -ef |grep -E 'httpd|apache'|grep -v /www/server/apache|grep -v grep)
+	if [ "${PHP_CHECK}" ] || [ "${MYSQLD_CHECK}" ] || [ "${NGINX_CHECK}" ] || [ "${HTTPD_CHECK}" ];then
+		Install_Check
+	fi
 }
 Get_Pack_Manager(){
 	if [ -f "/usr/bin/yum" ] && [ -d "/etc/yum.repos.d" ]; then
@@ -174,12 +172,12 @@ get_node_url(){
 		NODE_URL=$(cat $tmp_file2|sort -g -t " " -k 1|head -n 1|awk '{print $2}')
 		if [ -z "$NODE_URL" ];then
 			NODE_URL='http://download.bt.cn';
-		      //NODE_URL='http://download.hostcli.com';
 		fi
 	fi
 	rm -f $tmp_file1
 	rm -f $tmp_file2
 	download_Url=$NODE_URL
+       #downloads_Url=http://download.hostcli.com
 	downloads_Url=https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_7.6.0
 	echo "Download node: $download_Url";
 	echo '---------------------------------------------';
@@ -214,7 +212,8 @@ Install_RPM_Pack(){
 	
 	#尝试同步时间(从bt.cn)
 	echo 'Synchronizing system time...'
-	getBtTime=$(curl -sS --connect-timeout 3 -m 60 http://www.bt.cn/api/index/get_time)
+        getBtTime=$(curl -sS --connect-timeout 3 -m 60 http://www.bt.cn/api/index/get_time)
+       #getBtTime=$(curl -sS --connect-timeout 3 -m 60 http://www.seele.wang/api/index/get_time)
 	if [ "${getBtTime}" ];then	
 		date -s "$(date -d @$getBtTime +"%Y-%m-%d %H:%M:%S")"
 	fi
@@ -266,8 +265,16 @@ Install_Deb_Pack(){
 	#echo 'Synchronizing system time...'
 	#ntpdate 0.asia.pool.ntp.org
 	#apt-get upgrade -y
-	for pace in wget curl libcurl4-openssl-dev gcc make zip unzip openssl libssl-dev gcc libxml2 libxml2-dev libxslt zlib1g zlib1g-dev libjpeg-dev libpng-dev lsof libpcre3 libpcre3-dev cron net-tools swig build-essential libffi-dev libbz2-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils git;
-	do apt-get -y install $pace --force-yes; done
+	debPacks="wget curl libcurl4-openssl-dev gcc make zip unzip tar openssl libssl-dev gcc libxml2 libxml2-dev zlib1g zlib1g-dev libjpeg-dev libpng-dev lsof libpcre3 libpcre3-dev cron net-tools swig build-essential libffi-dev libbz2-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils git";
+	apt-get install -y $debPacks --force-yes
+
+	for debPack in ${debPacks}
+	do
+		packCheck=$(dpkg -l ${debPack})
+		if [ "$?" -ne "0" ] ;then
+			apt-get install -y debPack
+		fi
+	done
 
 	if [ ! -d '/etc/letsencrypt' ];then
 		mkdir -p /etc/letsencryp
@@ -308,7 +315,7 @@ Install_Bt(){
 	fi
 
 	wget -O panel.zip ${downloads_Url}/install/src/panel6.zip -T 10
-	wget -O /etc/init.d/bt ${download_Url}/install/src/bt6.init -T 10
+	wget -O /etc/init.d/bt ${downloads_Url}/install/src/bt6.init -T 10
 	wget -O /www/server/panel/install/public.sh ${download_Url}/install/public.sh -T 10
 
 	if [ -f "${setup_path}/server/panel/data/default.db" ];then
@@ -350,9 +357,9 @@ Install_Bt(){
 	chmod -R +x ${setup_path}/server/panel/script
 	ln -sf /etc/init.d/bt /usr/bin/bt
 	echo "${panelPort}" > ${setup_path}/server/panel/data/port.pl
-	wget -O /etc/init.d/bt ${download_Url}/install/src/bt7.init -T 10
-	wget -O /www/server/panel/init.sh ${download_Url}/install/src/bt7.init -T 10
-      # sed -i 's/[0-9\.]\+[ ]\+www.bt.cn//g' /etc/hosts
+	wget -O /etc/init.d/bt ${downloads_Url}/install/src/bt7.init -T 10
+	wget -O /www/server/panel/init.sh ${downloads_Url}/install/src/bt7.init -T 10
+	sed -i 's/[0-9\.]\+[ ]\+www.bt.cn//g' /etc/hosts
 }
 
 Install_Python_Lib(){
@@ -388,6 +395,12 @@ Install_Python_Lib(){
 	if [ "$is_aarch64" != "" ];then
 		os_version="aarch64"
 	fi
+	
+	if [ -f "/www/server/panel/pymake.pl" ];then
+		os_version=""
+		rm -f /www/server/panel/pymake.pl
+	fi	
+
 	if [ "${os_version}" != "" ];then
 		pyenv_file="/www/pyenv.tar.gz"
 		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 10
@@ -397,7 +410,7 @@ Install_Python_Lib(){
 			echo "ERROR: Download python env fielded."
 		else
 			echo "Install python env..."
-			tar zxvf $pyenv_file -C $pyenv_path/ &> /dev/null
+			tar zxvf $pyenv_file -C $pyenv_path/ > /dev/null
 			chmod -R 700 $pyenv_path/pyenv/bin
 			if [ ! -f $pyenv_path/pyenv/bin/python ];then
 				rm -f $pyenv_file
@@ -611,13 +624,7 @@ Set_Firewall(){
 	if [ "${PM}" = "apt-get" ]; then
 		apt-get install -y ufw
 		if [ -f "/usr/sbin/ufw" ];then
-			ufw allow 20/tcp
-			ufw allow 21/tcp
-			ufw allow 22/tcp
-			ufw allow 80/tcp
-			ufw allow 888/tcp
-			ufw allow ${panelPort}/tcp
-			ufw allow ${sshPort}/tcp
+			ufw allow 888,20,21,22,80,${panelPort},${sshPort}/tcp
 			ufw allow 39000:40000/tcp
 			ufw_status=`ufw status`
 			echo y|ufw enable
@@ -666,18 +673,18 @@ Set_Firewall(){
 }
 Get_Ip_Address(){
 	getIpAddress=""
-#	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
-#	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
-#		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
-#		if [ -z "${isHosts}" ];then
-#			echo "" >> /etc/hosts
-#			echo "103.224.251.67 www.bt.cn" >> /etc/hosts
-#			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
-#			if [ -z "${getIpAddress}" ];then
-#				sed -i "/bt.cn/d" /etc/hosts
-#			fi
-#		fi
-#	fi
+	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
+	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
+		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
+		if [ -z "${isHosts}" ];then
+			echo "" >> /etc/hosts
+			echo "103.224.251.67 www.bt.cn" >> /etc/hosts
+			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
+			if [ -z "${getIpAddress}" ];then
+				sed -i "/bt.cn/d" /etc/hosts
+			fi
+		fi
+	fi
 
 	ipv4Check=$($python_bin -c "import re; print(re.match('^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$','${getIpAddress}'))")
 	if [ "${ipv4Check}" == "None" ];then
@@ -698,7 +705,8 @@ Get_Ip_Address(){
 	LOCAL_IP=$(ip addr | grep -E -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -E -v "^127\.|^255\.|^0\." | head -n 1)
 }
 Setup_Count(){
-	curl -sS --connect-timeout 10 -m 60 https://www.hostcli.com/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1
+   <!--	curl -sS --connect-timeout 10 -m 60 https://www.hostcli.com/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1 -->
+	curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1
 	if [ "$1" != "" ];then
 		echo $1 > /www/server/panel/data/o.pl
 		cd /www/server/panel
@@ -727,16 +735,14 @@ Install_Main(){
 
 	Install_Python_Lib
 	Install_Bt
-	sed -i 's/[0-9\.]\+[ ]\+www.bt.cn//g' /etc/hosts
-	echo "127.0.0.1 www.bt.cn" >> /etc/hosts
-	sed -i 's/[0-9\.]\+[ ]\+www.bt.cn/127.0.0.1 www.bt.cn/g' /etc/hosts
+	
 
 	Set_Bt_Panel
 	Service_Add
 	Set_Firewall
 
 	Get_Ip_Address
-	# Setup_Count ${IDC_CODE}
+	Setup_Count ${IDC_CODE}
 }
 
 echo "
@@ -774,5 +780,5 @@ echo -e "=================================================================="
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
-
-
+echo -e "\033[31m已经安装完毕，欢迎使用！ \033[0m"  
+rm -rf install.sh
