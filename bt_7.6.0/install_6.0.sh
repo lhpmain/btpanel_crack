@@ -316,7 +316,7 @@ Install_Bt(){
 
 	wget -O panel.zip ${downloads_Url}/install/src/panel6.zip -T 10
 	wget -O /etc/init.d/bt ${downloads_Url}/install/src/bt6.init -T 10
-	wget -O /www/server/panel/install/public.sh ${download_Url}/install/public.sh -T 10
+	wget -O /www/server/panel/install/public.sh ${downloads_Url}/install/public.sh -T 10
 
 	if [ -f "${setup_path}/server/panel/data/default.db" ];then
 		if [ -d "/${setup_path}/server/panel/old_data" ];then
@@ -363,7 +363,8 @@ Install_Bt(){
 }
 
 Install_Python_Lib(){
-	curl -Ss --connect-timeout 3 -m 60 $download_Url/install/pip_select.sh|bash
+   #curl -Ss --connect-timeout 3 -m 60 $download_Url/install/pip_select.sh|bash
+	curl -Ss --connect-timeout 3 -m 60 $downloads_Url/install/pip_select.sh|bash
 	pyenv_path="/www/server/panel"
 	if [ -f $pyenv_path/pyenv/bin/python ];then
 		is_err=$($pyenv_path/pyenv/bin/python3.7 -V 2>&1|grep 'Could not find platform')
@@ -371,7 +372,8 @@ Install_Python_Lib(){
 			chmod -R 700 $pyenv_path/pyenv/bin
 			is_package=$($python_bin -m psutil 2>&1|grep package)
 			if [ "$is_package" = "" ];then
-				wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip.txt -T 5
+			   #wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip.txt -T 5
+				wget -O $pyenv_path/pyenv/pip.txt $downloads_Url/install/pyenv/pip.txt -T 10
 				$pyenv_path/pyenv/bin/pip install -U pip
 				$pyenv_path/pyenv/bin/pip install -U setuptools
 				$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
@@ -440,7 +442,8 @@ Install_Python_Lib(){
 	cd /www
 	python_src='/www/python_src.tar.xz'
 	python_src_path="/www/Python-${py_version}"
-	wget -O $python_src $download_Url/src/Python-${py_version}.tar.xz -T 5
+	#wget -O $python_src $download_Url/src/Python-${py_version}.tar.xz -T 5
+    wget -O $python_src $downloadS_Url/install/src/Python-${py_version}.tar.xz -T 10
 	tmp_size=$(du -b $python_src|awk '{print $1}')
 	if [ $tmp_size -lt 10703460 ];then
 		rm -f $python_src
@@ -458,8 +461,10 @@ Install_Python_Lib(){
 	fi
 	cd ~
 	rm -rf $python_src_path
-	wget -O $pyenv_path/pyenv/bin/activate $download_Url/install/pyenv/activate.panel -T 5
-	wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip-3.7.8.txt -T 5
+   #wget -O $pyenv_path/pyenv/bin/activate $download_Url/install/pyenv/activate.panel -T 5
+   #wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip-3.7.8.txt -T 5
+	wget -O $pyenv_path/pyenv/bin/activate $downloadS_Url/install/pyenv/activate.panel -T 10
+	wget -O $pyenv_path/pyenv/pip.txt $downloadS_Url/install/pyenv/pip-3.7.8.txt -T 10
 	ln -sf $pyenv_path/pyenv/bin/pip3.7 $pyenv_path/pyenv/bin/pip
 	ln -sf $pyenv_path/pyenv/bin/python3.7 $pyenv_path/pyenv/bin/python
 	ln -sf $pyenv_path/pyenv/bin/pip3.7 /usr/bin/btpip
@@ -479,7 +484,8 @@ Other_Openssl(){
 		if [ ! -f "/usr/local/openssl/lib/libssl.so" ];then
 			cd /www
 			openssl_src_file=/www/openssl.tar.gz
-			wget -O $openssl_src_file ${download_Url}/src/openssl-${opensslVersion}.tar.gz
+		   #wget -O $openssl_src_file ${download_Url}/src/openssl-${opensslVersion}.tar.gz
+			wget -O $openssl_src_file ${downloads_Url}/install/src/openssl-${opensslVersion}.tar.gz
 			tmp_size=$(du -b $openssl_src_file|awk '{print $1}')
 			if [ $tmp_size -lt 703460 ];then
 				rm -f $openssl_src_file
@@ -508,7 +514,8 @@ Insatll_Libressl(){
 		opensslVersion="3.0.2"
 		cd /www
 		openssl_src_file=/www/openssl.tar.gz
-		wget -O $openssl_src_file ${download_Url}/install/pyenv/libressl-${opensslVersion}.tar.gz
+	   #wget -O $openssl_src_file ${download_Url}/install/pyenv/libressl-${opensslVersion}.tar.gz
+		wget -O $openssl_src_file ${downloads_Url}/install/pyenv/libressl-${opensslVersion}.tar.gz
 		tmp_size=$(du -b $openssl_src_file|awk '{print $1}')
 		if [ $tmp_size -lt 703460 ];then
 			rm -f $openssl_src_file
@@ -673,13 +680,14 @@ Set_Firewall(){
 }
 Get_Ip_Address(){
 	getIpAddress=""
-	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
+   #getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
+	getIpAddress=$(curl -sS --connect-timeout 10 -m 60$downloads_Url/Api/getIpAddress)
 	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
 		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
 		if [ -z "${isHosts}" ];then
 			echo "" >> /etc/hosts
 			echo "103.224.251.67 www.bt.cn" >> /etc/hosts
-			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
+			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 $downloads_Url/Api/getIpAddress)
 			if [ -z "${getIpAddress}" ];then
 				sed -i "/bt.cn/d" /etc/hosts
 			fi
@@ -705,7 +713,6 @@ Get_Ip_Address(){
 	LOCAL_IP=$(ip addr | grep -E -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -E -v "^127\.|^255\.|^0\." | head -n 1)
 }
 Setup_Count(){
-   #curl -sS --connect-timeout 10 -m 60 https://www.hostcli.com/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1 
 	curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1
 	if [ "$1" != "" ];then
 		echo $1 > /www/server/panel/data/o.pl
