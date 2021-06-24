@@ -680,14 +680,15 @@ Set_Firewall(){
 }
 Get_Ip_Address(){
 	getIpAddress=""
-   #getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
-	getIpAddress=$(curl -sS --connect-timeout 10 -m 60$downloads_Url/Api/getIpAddress)
+       #getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
+	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
 	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
 		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
 		if [ -z "${isHosts}" ];then
 			echo "" >> /etc/hosts
 			echo "103.224.251.67 www.bt.cn" >> /etc/hosts
-			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 $downloads_Url/Api/getIpAddress)
+		       #getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
+			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
 			if [ -z "${getIpAddress}" ];then
 				sed -i "/bt.cn/d" /etc/hosts
 			fi
