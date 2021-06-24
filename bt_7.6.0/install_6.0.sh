@@ -14,6 +14,7 @@ if [ "${is64bit}" != '64' ];then
 fi
 
 cd ~
+
 setup_path="/www"
 python_bin=$setup_path/server/panel/pyenv/bin/python
 cpu_cpunt=$(cat /proc/cpuinfo|grep processor|wc -l)
@@ -134,6 +135,7 @@ get_node_url(){
 	
 	echo '---------------------------------------------';
 	echo "Selected download node...";
+       #nodes=(http://download.hostcli.com);
 	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://180.101.160.68:5880 http://103.224.251.67 http://45.76.53.20 http://120.206.184.160 http://113.107.111.78 http://128.1.164.196);
 	tmp_file1=/dev/shm/net_test1.pl
 	tmp_file2=/dev/shm/net_test2.pl
@@ -172,6 +174,7 @@ get_node_url(){
 		NODE_URL=$(cat $tmp_file2|sort -g -t " " -k 1|head -n 1|awk '{print $2}')
 		if [ -z "$NODE_URL" ];then
 			NODE_URL='http://download.bt.cn';
+		      //NODE_URL='http://download.hostcli.com';
 		fi
 	fi
 	rm -f $tmp_file1
@@ -313,6 +316,8 @@ Install_Bt(){
 			rm -rf ${setup_path}/server/panel/old_data
 		fi
 		mkdir -p ${setup_path}/server/panel/old_data
+		d_format=$(date +"%Y%m%d_%H%M%S")
+		\cp -arf ${setup_path}/server/panel/data/default.db ${setup_path}/server/panel/data/default_backup_${d_format}.db
 		mv -f ${setup_path}/server/panel/data/default.db ${setup_path}/server/panel/old_data/default.db
 		mv -f ${setup_path}/server/panel/data/system.db ${setup_path}/server/panel/old_data/system.db
 		mv -f ${setup_path}/server/panel/data/port.pl ${setup_path}/server/panel/old_data/port.pl
@@ -347,23 +352,28 @@ Install_Bt(){
 	echo "${panelPort}" > ${setup_path}/server/panel/data/port.pl
 	wget -O /etc/init.d/bt ${download_Url}/install/src/bt7.init -T 10
 	wget -O /www/server/panel/init.sh ${download_Url}/install/src/bt7.init -T 10
-	sed -i 's/[0-9\.]\+[ ]\+www.bt.cn//g' /etc/hosts
+      # sed -i 's/[0-9\.]\+[ ]\+www.bt.cn//g' /etc/hosts
 }
 
 Install_Python_Lib(){
 	curl -Ss --connect-timeout 3 -m 60 $download_Url/install/pip_select.sh|bash
 	pyenv_path="/www/server/panel"
 	if [ -f $pyenv_path/pyenv/bin/python ];then
-		chmod -R 700 $pyenv_path/pyenv/bin
-		is_package=$($python_bin -m psutil 2>&1|grep package)
-		if [ "$is_package" = "" ];then
-			wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip.txt -T 5
-			$pyenv_path/pyenv/bin/pip install -U pip
-			$pyenv_path/pyenv/bin/pip install -U setuptools
-			$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
+		is_err=$($pyenv_path/pyenv/bin/python3.7 -V 2>&1|grep 'Could not find platform')
+		if [ "$is_err" = "" ];then
+			chmod -R 700 $pyenv_path/pyenv/bin
+			is_package=$($python_bin -m psutil 2>&1|grep package)
+			if [ "$is_package" = "" ];then
+				wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip.txt -T 5
+				$pyenv_path/pyenv/bin/pip install -U pip
+				$pyenv_path/pyenv/bin/pip install -U setuptools
+				$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
+			fi
+			source $pyenv_path/pyenv/bin/activate
+			return
+		else
+			rm -rf $pyenv_path/pyenv
 		fi
-		source $pyenv_path/pyenv/bin/activate
-		return
 	fi
 	py_version="3.7.8"
 	mkdir -p $pyenv_path
@@ -393,11 +403,17 @@ Install_Python_Lib(){
 				rm -f $pyenv_file
 				Red_Error "ERROR: Install python env fielded."
 			fi
-			rm -f $pyenv_file
-			ln -sf $pyenv_path/pyenv/bin/pip3.7 /usr/bin/btpip
-			ln -sf $pyenv_path/pyenv/bin/python3.7 /usr/bin/btpython
-			source $pyenv_path/pyenv/bin/activate
-			return
+			is_err=$($pyenv_path/pyenv/bin/python3.7 -V 2>&1|grep 'Could not find platform')
+			if [ "$is_err" = "" ];then
+				rm -f $pyenv_file
+				ln -sf $pyenv_path/pyenv/bin/pip3.7 /usr/bin/btpip
+				ln -sf $pyenv_path/pyenv/bin/python3.7 /usr/bin/btpython
+				source $pyenv_path/pyenv/bin/activate
+				return
+			else
+				rm -f $pyenv_file
+				rm -rf $pyenv_path/pyenv
+			fi
 		fi
 		
 	fi
@@ -595,7 +611,13 @@ Set_Firewall(){
 	if [ "${PM}" = "apt-get" ]; then
 		apt-get install -y ufw
 		if [ -f "/usr/sbin/ufw" ];then
-			ufw allow 888,20,21,22,80,${panelPort},${sshPort}/tcp
+			ufw allow 20/tcp
+			ufw allow 21/tcp
+			ufw allow 22/tcp
+			ufw allow 80/tcp
+			ufw allow 888/tcp
+			ufw allow ${panelPort}/tcp
+			ufw allow ${sshPort}/tcp
 			ufw allow 39000:40000/tcp
 			ufw_status=`ufw status`
 			echo y|ufw enable
@@ -644,18 +666,18 @@ Set_Firewall(){
 }
 Get_Ip_Address(){
 	getIpAddress=""
-	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
-	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
-		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
-		if [ -z "${isHosts}" ];then
-			echo "" >> /etc/hosts
-			echo "103.224.251.67 www.bt.cn" >> /etc/hosts
-			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
-			if [ -z "${getIpAddress}" ];then
-				sed -i "/bt.cn/d" /etc/hosts
-			fi
-		fi
-	fi
+#	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
+#	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
+#		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
+#		if [ -z "${isHosts}" ];then
+#			echo "" >> /etc/hosts
+#			echo "103.224.251.67 www.bt.cn" >> /etc/hosts
+#			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
+#			if [ -z "${getIpAddress}" ];then
+#				sed -i "/bt.cn/d" /etc/hosts
+#			fi
+#		fi
+#	fi
 
 	ipv4Check=$($python_bin -c "import re; print(re.match('^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$','${getIpAddress}'))")
 	if [ "${ipv4Check}" == "None" ];then
@@ -676,7 +698,7 @@ Get_Ip_Address(){
 	LOCAL_IP=$(ip addr | grep -E -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -E -v "^127\.|^255\.|^0\." | head -n 1)
 }
 Setup_Count(){
-	curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1
+	curl -sS --connect-timeout 10 -m 60 https://www.hostcli.com/Api/SetupCount?type=Linux\&o=$1 > /dev/null 2>&1
 	if [ "$1" != "" ];then
 		echo $1 > /www/server/panel/data/o.pl
 		cd /www/server/panel
@@ -705,14 +727,16 @@ Install_Main(){
 
 	Install_Python_Lib
 	Install_Bt
-	
+	sed -i 's/[0-9\.]\+[ ]\+www.bt.cn//g' /etc/hosts
+	echo "127.0.0.1 www.bt.cn" >> /etc/hosts
+	sed -i 's/[0-9\.]\+[ ]\+www.bt.cn/127.0.0.1 www.bt.cn/g' /etc/hosts
 
 	Set_Bt_Panel
 	Service_Add
 	Set_Firewall
 
 	Get_Ip_Address
-	Setup_Count ${IDC_CODE}
+	# Setup_Count ${IDC_CODE}
 }
 
 echo "
@@ -734,7 +758,7 @@ if [ "$go" == 'n' ];then
 fi
 
 Install_Main
-
+echo > /www/server/panel/data/bind.pl
 echo -e "=================================================================="
 echo -e "\033[32mCongratulations! Installed successfully!\033[0m"
 echo -e "=================================================================="
@@ -750,4 +774,5 @@ echo -e "=================================================================="
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
+
 
