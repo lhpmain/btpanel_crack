@@ -441,7 +441,7 @@ Install_Python_Lib(){
 	cd /www
 	python_src='/www/python_src.tar.xz'
 	python_src_path="/www/Python-${py_version}"
-    wget -O $python_src $downloadS_Url/install/src/Python-${py_version}.tar.xz -T 10
+    wget -O $python_src $downloads_Url/install/src/Python-${py_version}.tar.xz -T 10
 	tmp_size=$(du -b $python_src|awk '{print $1}')
 	if [ $tmp_size -lt 10703460 ];then
 		rm -f $python_src
@@ -462,7 +462,7 @@ Install_Python_Lib(){
    #wget -O $pyenv_path/pyenv/bin/activate $download_Url/install/pyenv/activate.panel -T 5
    #wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip-3.7.8.txt -T 5
 	wget -O $pyenv_path/pyenv/bin/activate $downloadS_Url/install/pyenv/activate.panel -T 10
-	wget -O $pyenv_path/pyenv/pip.txt $downloadS_Url/install/pyenv/pip-3.7.8.txt -T 10
+	wget -O $pyenv_path/pyenv/pip.txt $downloads_Url/install/pyenv/pip-3.7.8.txt -T 10
 	ln -sf $pyenv_path/pyenv/bin/pip3.7 $pyenv_path/pyenv/bin/pip
 	ln -sf $pyenv_path/pyenv/bin/python3.7 $pyenv_path/pyenv/bin/python
 	ln -sf $pyenv_path/pyenv/bin/pip3.7 /usr/bin/btpip
