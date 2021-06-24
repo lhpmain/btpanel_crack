@@ -133,7 +133,7 @@ get_node_url(){
 	
 	echo '---------------------------------------------';
 	echo "Selected download node...";
-       #nodes=(http://download.hostcli.com);
+   #nodes=(http://download.hostcli.com);
 	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://180.101.160.68:5880 http://103.224.251.67 http://45.76.53.20 http://120.206.184.160 http://113.107.111.78 http://128.1.164.196);
 	tmp_file1=/dev/shm/net_test1.pl
 	tmp_file2=/dev/shm/net_test2.pl
@@ -177,7 +177,6 @@ get_node_url(){
 	rm -f $tmp_file1
 	rm -f $tmp_file2
 	download_Url=$NODE_URL
-       #downloads_Url=http://download.hostcli.com
 	downloads_Url=https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_7.6.0
 	echo "Download node: $download_Url";
 	echo '---------------------------------------------';
@@ -213,7 +212,6 @@ Install_RPM_Pack(){
 	#尝试同步时间(从bt.cn)
 	echo 'Synchronizing system time...'
         getBtTime=$(curl -sS --connect-timeout 3 -m 60 http://www.bt.cn/api/index/get_time)
-       #getBtTime=$(curl -sS --connect-timeout 3 -m 60 http://www.seele.wang/api/index/get_time)
 	if [ "${getBtTime}" ];then	
 		date -s "$(date -d @$getBtTime +"%Y-%m-%d %H:%M:%S")"
 	fi
@@ -372,7 +370,6 @@ Install_Python_Lib(){
 			chmod -R 700 $pyenv_path/pyenv/bin
 			is_package=$($python_bin -m psutil 2>&1|grep package)
 			if [ "$is_package" = "" ];then
-			   #wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip.txt -T 5
 				wget -O $pyenv_path/pyenv/pip.txt $downloads_Url/install/pyenv/pip.txt -T 10
 				$pyenv_path/pyenv/bin/pip install -U pip
 				$pyenv_path/pyenv/bin/pip install -U setuptools
@@ -405,7 +402,8 @@ Install_Python_Lib(){
 
 	if [ "${os_version}" != "" ];then
 		pyenv_file="/www/pyenv.tar.gz"
-		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 10
+	   #wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 10
+		wget -O $pyenv_file $downloadS_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 20
 		tmp_size=$(du -b $pyenv_file|awk '{print $1}')
 		if [ $tmp_size -lt 703460 ];then
 			rm -f $pyenv_file
@@ -442,7 +440,6 @@ Install_Python_Lib(){
 	cd /www
 	python_src='/www/python_src.tar.xz'
 	python_src_path="/www/Python-${py_version}"
-	#wget -O $python_src $download_Url/src/Python-${py_version}.tar.xz -T 5
     wget -O $python_src $downloadS_Url/install/src/Python-${py_version}.tar.xz -T 10
 	tmp_size=$(du -b $python_src|awk '{print $1}')
 	if [ $tmp_size -lt 10703460 ];then
@@ -545,7 +542,8 @@ Centos6_Openssl(){
 	fi
 	echo 'Centos6 install openssl-1.0.2...'
 	openssl_rpm_file="/www/openssl.rpm"
-	wget -O $openssl_rpm_file $download_Url/rpm/centos6/${is64bit}/bt-openssl102.rpm -T 10
+   #wget -O $openssl_rpm_file $download_Url/rpm/centos6/${is64bit}/bt-openssl102.rpm -T 10
+	wget -O $openssl_rpm_file $downloads_Url/install/src/${is64bit}/bt-openssl102.rpm -T 20
 	tmp_size=$(du -b $openssl_rpm_file|awk '{print $1}')
 	if [ $tmp_size -lt 102400 ];then
 		rm -f $openssl_rpm_file
@@ -680,14 +678,13 @@ Set_Firewall(){
 }
 Get_Ip_Address(){
 	getIpAddress=""
-       #getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
+   #getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
 	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
 	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
 		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
 		if [ -z "${isHosts}" ];then
 			echo "" >> /etc/hosts
 			echo "103.224.251.67 www.bt.cn" >> /etc/hosts
-		       #getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
 			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
 			if [ -z "${getIpAddress}" ];then
 				sed -i "/bt.cn/d" /etc/hosts
