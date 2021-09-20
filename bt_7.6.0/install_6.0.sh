@@ -313,7 +313,7 @@ Install_Bt(){
 	fi
 
    #wget -O panel.zip ${downloads_Url}/install/src/panel6.zip -T 10
-	wget -O panel.zip ${downloads_Url}/install/src/panel6-1.zip -T 10
+	wget -O panel.zip ${downloads_Url}/install/src/panel6.zip -T 10
 	wget -O /etc/init.d/bt ${downloads_Url}/install/src/bt6.init -T 10
 	wget -O /www/server/panel/install/public.sh ${downloads_Url}/install/public.sh -T 10
 
@@ -679,7 +679,6 @@ Set_Firewall(){
 }
 Get_Ip_Address(){
 	getIpAddress=""
-   #getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.seele.wang/Api/getIpAddress)
 	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
 	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
 		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
