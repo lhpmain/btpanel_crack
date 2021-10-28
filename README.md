@@ -1,14 +1,10 @@
 # btpanel_crack
 
-just backup copy
-
-Usage One Key:  
 ```
-<<<<<<< HEAD
-宝塔各修改面板的安装方法：
 =======
 宝塔各修版安装方法：
->>>>>>> 3c9a1313917c47781d12fd56e223c78809e4972c
+
+
 1  wget -O install.sh https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_5.9/install_pro.sh && bash install.sh
 
 2 5.9平滑升级到6.0的命令： 
