@@ -21,7 +21,7 @@ IP6的宝塔安装链接：
   任何宝塔版本升级：curl https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_7.6.0/update6.sh|bash
 
 7.9.4宝塔安装：
-        wget -O install.sh https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_7.9.4/install_6.0 && bash install.sh
+        wget -O install.sh https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_7.9.4/install_6.0.sh && bash install.sh
 ```
 
 
