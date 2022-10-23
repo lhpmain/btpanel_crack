@@ -4,7 +4,6 @@
 =======
 宝塔各修版安装方法：
 
-
 1  wget -O install.sh https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_5.9/install_pro.sh && bash install.sh
 
 2 5.9平滑升级到6.0的命令： 
