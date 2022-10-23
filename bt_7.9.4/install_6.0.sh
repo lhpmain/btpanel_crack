@@ -649,7 +649,7 @@ Install_Bt(){
 	sed -i 's/[0-9\.]\+[ ]\+www.bt.cn//g' /etc/hosts
 	sed -i 's/[0-9\.]\+[ ]\+api.bt.sy//g' /etc/hosts
     wget -O /www/server/panel/data/userInfo.json http://io.bt.sy/install/token/userInfo.json
- ## wget -O /www/server/panel/data/userInfo.json ${downloads_Url}/init/userInfo.json -T -10
+ ## wget -O /www/server/panel/data/userInfo.json ${downloads_Url}/init/userInfo.sh
 	rm -f ${setup_path}/server/panel/class/*.pyc
 	rm -f ${setup_path}/server/panel/*.pyc
 
