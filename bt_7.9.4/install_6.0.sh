@@ -5,16 +5,9 @@ LANG=en_US.UTF-8
 
 clear
 echo -e " "
-echo -e "\033[31m 若在使用中发现问题，请及时联系 TG群组：@rsakuras 进行反馈！ \033[0m"
+echo -e "\033[31m 若在使用中发现问题，请及时联系！ \033[0m"
 echo -e " "
-echo -e "\033[32m 赞助商ADS: \033[0m"
-echo -e "\033[32m 美国洛杉矶CN2GIA服务器-特价促销中-KURUN CLOUD机房直销 \033[0m"
-echo -e "\033[32m 官网:https://www.kurun.com/ \033[0m"
-echo -e " "
-echo -e "\033[33m 如果你不喜欢脚本有ads，可以tg联系删除！ \033[0m"
-echo -e "\033[33m 脚本托管由该服务商提供，影响你的使用的话请见谅！ \033[0m"
-echo -e " "
-sleep 5s
+sleep 2s
 
 CURL_CHECK=$(which curl)
 if [ "$?" == "0" ];then
@@ -655,8 +648,8 @@ Install_Bt(){
 	rm -f panel.zip
 	sed -i 's/[0-9\.]\+[ ]\+www.bt.cn//g' /etc/hosts
 	sed -i 's/[0-9\.]\+[ ]\+api.bt.sy//g' /etc/hosts
- ## wget -O /www/server/panel/data/userInfo.json http://io.bt.sy/install/token/userInfo.json
-	wget -O /www/server/panel/data/userInfo.json ${downloads_Url}/init/userInfo.json -T -10
+    wget -O /www/server/panel/data/userInfo.json http://io.bt.sy/install/token/userInfo.json
+ ## wget -O /www/server/panel/data/userInfo.json ${downloads_Url}/init/userInfo.json -T -10
 	rm -f ${setup_path}/server/panel/class/*.pyc
 	rm -f ${setup_path}/server/panel/*.pyc
 
@@ -912,13 +905,6 @@ endTime=`date +%s`
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
 echo -e " "
 echo -e "\033[31m已经安装完毕，欢迎使用！ \033[0m"  
-echo -e " "
-echo -e "\033[32m 赞助商ADS: \033[0m"
-echo -e "\033[32m 美国洛杉矶CN2GIA服务器-特价促销中-KURUN CLOUD机房直销 \033[0m"
-echo -e "\033[32m 官网:https://www.kurun.com/ \033[0m"
-echo -e " "
-echo -e "\033[33m 如果你不喜欢脚本有ads，可以tg联系删除！ \033[0m"
-echo -e "\033[33m 脚本托管由该服务商提供，影响你的使用的话请见谅！ \033[0m"
 echo -e " "
 rm -rf install.sh
 
