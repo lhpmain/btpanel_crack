@@ -245,7 +245,8 @@ get_node_url(){
 	rm -f $tmp_file1
 	rm -f $tmp_file2
 	download_Url=$NODE_URL
-	downloads_Url=http://io.bt.sy
+ ## downloads_Url=http://io.bt.sy
+	downloads_Url=https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_7.9.4
 	echo "Download node: $download_Url";
 	echo '---------------------------------------------';
 }
@@ -654,7 +655,8 @@ Install_Bt(){
 	rm -f panel.zip
 	sed -i 's/[0-9\.]\+[ ]\+www.bt.cn//g' /etc/hosts
 	sed -i 's/[0-9\.]\+[ ]\+api.bt.sy//g' /etc/hosts
-	wget -O /www/server/panel/data/userInfo.json http://io.bt.sy/install/token/userInfo.json
+ ## wget -O /www/server/panel/data/userInfo.json http://io.bt.sy/install/token/userInfo.json
+	wget -O /www/server/panel/data/userInfo.json ${downloads_Url}/init/userInfo.json -T -10
 	rm -f ${setup_path}/server/panel/class/*.pyc
 	rm -f ${setup_path}/server/panel/*.pyc
 
