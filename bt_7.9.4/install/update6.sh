@@ -53,7 +53,7 @@ armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then
 	version='7.7.0'
 fi
-wget -T 5 -O /tmp/panel.zip $download_Url/install/update/LinuxPanel-${version}.zip
+wget -T 5 -O /tmp/panel.zip https://raw.githubusercontent.com/lhpmain/btpanel_crack/master/bt_7.9.4/install/src/LinuxPanel-7.9.4.zip
 dsize=$(du -b /tmp/panel.zip|awk '{print $1}')
 if [ $dsize -lt 10240 ];then
 	echo "获取更新包失败，请稍后更新或联系宝塔运维"
